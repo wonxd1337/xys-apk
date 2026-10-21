@@ -37,9 +37,16 @@ jobs:
           sed -i 's#android:label="[^"]*"#android:label="Deoxys"#' $M
 
       - run: flutter pub get
-      - name: Analisis kode
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings || true
-      - run: flutter build apk --release
+
+      - name: Build APK
+        run: |
+          flutter build apk --release > build.log 2>&1 || {
+            echo "=== RINGKASAN ERROR ==="
+            grep -n -E "Error|error:|Exception|lib/" build.log | head -40
+            echo "=== 60 BARIS TERAKHIR ==="
+            tail -60 build.log
+            exit 1
+          }
 
       - uses: actions/upload-artifact@v4
         with:
