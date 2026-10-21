@@ -14,6 +14,7 @@ import '../widgets/glow_button.dart';
 import '../widgets/gradient_text.dart';
 import '../widgets/item_card.dart';
 import '../widgets/item_widgets.dart';
+import '../widgets/oxz_loader.dart';
 import '../widgets/skip_dialog.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/toast.dart';
@@ -353,7 +354,7 @@ class _DashboardViewState extends State<DashboardView> {
     if (!st.loaded) {
       return st.error != null
           ? _errorBox()
-          : const Center(child: CircularProgressIndicator(color: Colors.white));
+          : const Center(child: OxzLoader());
     }
 
     final list = bo ? _boothSorted() : _visInv();

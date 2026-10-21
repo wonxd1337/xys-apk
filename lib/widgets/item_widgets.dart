@@ -214,11 +214,12 @@ class ItemSummary extends StatelessWidget {
 
 /// Ringkasan beberapa item (mode Pilih).
 class ManySummary extends StatelessWidget {
-  const ManySummary({super.key, required this.items, this.price, this.note, this.priceLabel = 'Harga tiap item: '});
+  const ManySummary({super.key, required this.items, this.price, this.note, this.headline, this.priceLabel = 'Harga tiap item: '});
   final List<Item> items;
   final num? price;
   final String? note;
   final String priceLabel;
+  final String? headline;
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +231,7 @@ class ManySummary extends StatelessWidget {
         _box(Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${items.length} item dipilih',
+            Text(headline ?? '${items.length} item dipilih',
                 style: const TextStyle(fontWeight: FontWeight.w800, height: 1.3)),
             const SizedBox(height: 3),
             Text('$names$more', style: const TextStyle(color: C.muted, fontSize: 12.5)),

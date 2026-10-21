@@ -6,7 +6,10 @@ import '../core/theme.dart';
 import '../state/dash_state.dart';
 import '../widgets/aurora_background.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/oxz_loader.dart';
 import 'dashboard_view.dart';
+import 'history_view.dart';
+import 'queue_view.dart';
 import 'settings_view.dart';
 
 enum AppView { dash, queue, hist, wh, find, settings }
@@ -20,6 +23,8 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   bool _drawer = false;
+  bool _splash = true;
+  bool _minDone = false;
   late AppView _view = Api.baseUrl.isEmpty ? AppView.settings : AppView.dash;
 
   @override
@@ -27,11 +32,24 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     dash.start();
+    dash.addListener(_checkSplash);
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      _minDone = true;
+      _checkSplash();
+    });
+  }
+
+  void _checkSplash() {
+    if (!_splash || !_minDone || !mounted) return;
+    if (Api.baseUrl.isEmpty || dash.loaded || dash.error != null) {
+      setState(() => _splash = false);
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    dash.removeListener(_checkSplash);
     super.dispose();
   }
 
@@ -62,7 +80,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
     return Scaffold(
-      body: AuroraBackground(
+      body: Stack(children: [
+        AuroraBackground(
         child: PopScope(
           canPop: !_drawer && _view == AppView.dash,
           onPopInvokedWithResult: (didPop, _) {
@@ -87,8 +106,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                         index: _view.index,
                         children: [
                           const DashboardView(),
-                          _soon(FontAwesomeIcons.bagShopping, 'Antrian Jual'),
-                          _soon(FontAwesomeIcons.clockRotateLeft, 'Riwayat Penjualan'),
+                          const QueueView(),
+                          const HistoryView(),
                           _soon(FontAwesomeIcons.discord, 'Webhook'),
                           _soon(FontAwesomeIcons.magnifyingGlass, 'Find Items'),
                           SettingsView(onSaved: () => _go(AppView.dash)),
@@ -113,8 +132,22 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           ),
         ),
       ),
+        _splashLayer(),
+      ]),
     );
   }
+
+  Widget _splashLayer() => Positioned.fill(
+        child: IgnorePointer(
+          ignoring: !_splash,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 600),
+            child: _splash
+                ? const OxzSplash(key: ValueKey('splash'))
+                : const SizedBox.shrink(key: ValueKey('none')),
+          ),
+        ),
+      );
 
   Widget _soon(IconData icon, String title) => Center(
         child: GlassCard(
@@ -126,7 +159,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               const SizedBox(height: 12),
               Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
               const SizedBox(height: 6),
-              const Text('Tersedia di tahap 3', style: TextStyle(color: C.muted)),
+              const Text('Tersedia di tahap 4', style: TextStyle(color: C.muted)),
             ],
           ),
         ),

@@ -81,3 +81,29 @@ class Item {
       baseName +
       (isMax ? ' [MAXTON]' : '');
 }
+
+/// Riwayat penjualan lama belum punya kolom detail: dibaca dari teks item_name (padanan hx() di index.php)
+Item historyItem(Map<String, dynamic> x, Map<String, String> nameIcons) {
+  final nm = strOf(x['item_name']);
+  final o = Map<String, dynamic>.from(x);
+  if (strOf(o['base_name']).isEmpty) {
+    o['base_name'] = nm
+        .replaceFirst(RegExp(r'\s*\[[\d.,]+\s*kg\]\s*$', caseSensitive: false), '')
+        .replaceFirst(RegExp(r'\s*\[MAX\]', caseSensitive: false), '')
+        .replaceFirst(RegExp(r'^Big\s+'), '');
+    if (strOf(o['size_category']).isEmpty) {
+      o['size_category'] = RegExp(r'\[MAX\]', caseSensitive: false).hasMatch(nm)
+          ? 'Max'
+          : (RegExp(r'^Big\s').hasMatch(nm) ? 'Big' : '');
+    }
+  }
+  if (!(numOf(o['weight']) > 0)) {
+    final m = RegExp(r'\[([\d.,]+)\s*kg\]', caseSensitive: false).firstMatch(nm);
+    o['weight'] = m == null ? 0 : (double.tryParse(m.group(1)!.replaceAll(',', '')) ?? 0);
+  }
+  if (strOf(o['icon']).isEmpty) {
+    o['icon'] = nameIcons[strOf(o['base_name']).toLowerCase()] ?? '';
+  }
+  o['name'] = nm;
+  return Item(o);
+}

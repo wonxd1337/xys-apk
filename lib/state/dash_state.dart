@@ -151,7 +151,12 @@ class DashState extends ChangeNotifier {
 
       if (changed) {
         SharedPreferences.getInstance().then((p) => p.setString('u', user));
-        ensureIcons([...booth, ...inv].map((e) => e.iconId));
+        ensureIcons([
+          ...booth.map((e) => e.iconId),
+          ...inv.map((e) => e.iconId),
+          ...queue.map((q) => Item(q).iconId),
+          ...sales.map((m) => historyItem(m, nameIcons).iconId),
+        ]);
       }
     } catch (e) {
       final msg = e.toString();
@@ -231,6 +236,30 @@ class DashState extends ChangeNotifier {
       });
     }
     notifyListeners();
+  }
+}
+
+class CmdResult {
+  const CmdResult(this.ok, this.message);
+  final bool ok;
+  final String message;
+}
+
+extension DashRun on DashState {
+  /// Kirim perintah ui_cmd, tandai item "sending", lalu muat ulang data.
+  Future<CmdResult> run(Map<String, dynamic> body) async {
+    try {
+      final r = await cmd(body);
+      if (r['status'] != 'ok') return CmdResult(false, '${r['message'] ?? 'Gagal'}');
+      markSent(((r['done'] as List?) ?? []).map((e) => '$e'));
+      load(force: true);
+      return CmdResult(
+        true,
+        '${r['message'] ?? 'OK'}${bot.status == 'offline' ? ' (bot offline, dijalankan saat online)' : ''}',
+      );
+    } catch (_) {
+      return const CmdResult(false, 'Gagal terhubung ke server');
+    }
   }
 }
 

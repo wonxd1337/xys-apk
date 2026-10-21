@@ -21,7 +21,7 @@ Lisensi font "personal use" -> kalau pakai GitHub, buat repo **Private**.
    (atau jalankan manual: Actions > Build APK > Run workflow)
 
 ## Opsi B: PC Windows
-1. Pasang Flutter SDK dan Android Studio (SDK + cmdline-tools), jalankan `flutter doctor`.
+1. Pasang Flutter SDK versi 3.35.x (BUKAN yang terbaru, lihat catatan di bawah) dan Android Studio (SDK + cmdline-tools), jalankan `flutter doctor`.
 2. Di folder proyek:
    flutter create --org com.tew --project-name deoxys_dashboard --platforms=android .
    (jangan timpa lib/ dan pubspec.yaml; kalau ditanya, pilih tidak)
@@ -34,3 +34,6 @@ Lisensi font "personal use" -> kalau pakai GitHub, buat repo **Private**.
 
 ## Pertama kali dibuka
 Menu > Pengaturan > isi URL server (folder berisi api.php) > Simpan.
+
+## Catatan versi Flutter
+Paket font_awesome_flutter 10.x belum cocok dengan Flutter terbaru (IconData jadi final). Karena itu proyek ini dikunci ke Flutter 3.35.x, baik di GitHub Actions maupun di PC.
