@@ -1,0 +1,23 @@
+name: deoxys_dashboard
+description: Dashboard Deoxys (native)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  font_awesome_flutter: ^10.7.0
+  http: ^1.2.0
+  shared_preferences: ^2.2.3
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+  fonts:
+    - family: MadeEvolve
+      fonts:
+        - asset: assets/fonts/MadeEvolveSans-Medium.otf
