@@ -25,7 +25,7 @@ class _RevealState extends State<Reveal> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    final d = widget.baseDelay + 45 * math.min(widget.index, 12);
+    final int d = widget.baseDelay + 45 * math.min<int>(widget.index, 12);
     if (d == 0) {
       _c.forward();
     } else {
