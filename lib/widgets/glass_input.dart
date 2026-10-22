@@ -9,6 +9,7 @@ class GlassInput extends StatelessWidget {
     required this.controller,
     this.hint,
     this.number = false,
+    this.decimal = false,
     this.obscure = false,
     this.onSubmitted,
     this.prefix,
@@ -19,6 +20,7 @@ class GlassInput extends StatelessWidget {
   final TextEditingController controller;
   final String? hint;
   final bool number;
+  final bool decimal;
   final bool obscure;
   final ValueChanged<String>? onSubmitted;
   final Widget? prefix;
@@ -35,8 +37,12 @@ class GlassInput extends StatelessWidget {
       controller: controller,
       autofocus: autofocus,
       obscureText: obscure,
-      keyboardType: number ? TextInputType.number : TextInputType.text,
-      inputFormatters: number ? [FilteringTextInputFormatter.digitsOnly] : null,
+      keyboardType: decimal
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : (number ? TextInputType.number : TextInputType.text),
+      inputFormatters: decimal
+          ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))]
+          : (number ? [FilteringTextInputFormatter.digitsOnly] : null),
       textInputAction: action,
       onSubmitted: onSubmitted,
       cursorColor: Colors.white,

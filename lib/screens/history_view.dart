@@ -87,6 +87,7 @@ class _HistoryViewState extends State<HistoryView> {
                     final it = historyItem(m, st.nameIcons);
                     return ItemRow(
                       key: ValueKey('h${m['id']}'),
+                      index: i,
                       item: it,
                       iconUrl: st.icons[it.iconId],
                       price: numOf(m['price']),

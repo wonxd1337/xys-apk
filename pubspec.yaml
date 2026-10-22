@@ -12,12 +12,36 @@ dependencies:
   font_awesome_flutter: ^10.7.0
   http: ^1.2.0
   shared_preferences: ^2.2.3
+  audioplayers: ^6.1.0
+
+dev_dependencies:
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.6
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/sounds/
   fonts:
     - family: MadeEvolve
       fonts:
         - asset: assets/fonts/MadeEvolveSans-Medium.otf
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/icon_fg.png"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#000000"
+  image: assets/icon/splash.png
+  android: true
+  ios: false
+  web: false
+  android_12:
+    color: "#000000"
+    image: assets/icon/splash.png

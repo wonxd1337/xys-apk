@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/api.dart';
+import '../core/sfx.dart';
 import '../core/theme.dart';
 import '../state/dash_state.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glass_input.dart';
+import '../widgets/glass_switch.dart';
 import '../widgets/glow_button.dart';
 import '../widgets/toast.dart';
 
@@ -22,6 +24,7 @@ class _SettingsViewState extends State<SettingsView> {
   late final _url = TextEditingController(text: Api.baseUrl);
   late final _tok = TextEditingController(text: Api.token);
   bool _busy = false;
+  bool _sfx = Sfx.enabled;
 
   @override
   void dispose() {
@@ -97,6 +100,10 @@ class _SettingsViewState extends State<SettingsView> {
               ),
               _label('Token (opsional)'),
               GlassInput(controller: _tok, hint: 'Kosongkan kalau api.php belum pakai token', obscure: true),
+              const Padding(
+                padding: EdgeInsets.only(top: 6),
+                child: Text('Isi sama persis dengan APP_SECRET di auth.php (kalau auth.php dipasang).', style: note),
+              ),
               const SizedBox(height: 18),
               Row(children: [
                 Expanded(
@@ -120,6 +127,24 @@ class _SettingsViewState extends State<SettingsView> {
               ]),
             ],
           ),
+        ),
+        const SizedBox(height: 14),
+        GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          child: Row(children: [
+            const Icon(FontAwesomeIcons.volumeHigh, size: 15),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text('Suara klik', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+            GlassSwitch(
+              value: _sfx,
+              onChanged: (v) {
+                setState(() => _sfx = v);
+                Sfx.setEnabled(v);
+              },
+            ),
+          ]),
         ),
       ],
     );

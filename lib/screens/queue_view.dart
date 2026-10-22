@@ -121,6 +121,7 @@ class _QueueViewState extends State<QueueView> {
                     final it = Item(m);
                     return ItemRow(
                       key: ValueKey('q${m['id']}'),
+                      index: i,
                       item: it,
                       iconUrl: st.icons[it.iconId],
                       price: it.price,

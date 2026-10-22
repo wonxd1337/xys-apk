@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../core/sfx.dart';
 import '../core/theme.dart';
 
 enum BtnKind { primary, dark, trash, danger }
@@ -142,6 +143,7 @@ class _GlowButtonState extends State<GlowButton> {
               onTap: enabled
                   ? () {
                       setState(() => _down = false);
+                      Sfx.click();
                       burst(context, _pos);
                       w.onPressed!();
                     }

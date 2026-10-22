@@ -64,3 +64,22 @@ LinearGradient mutationGradient(List<MutStop> s, {int alpha = 255}) =>
       colors: s.map((k) => k.color.withAlpha(alpha)).toList(),
       stops: s.map((k) => k.t).toList(),
     );
+
+/// Warna katalog bisa berupa daftar hex ("#ff0000,#00ff00") atau format dashboard;
+/// keduanya dikonversi ke format dashboard "t r g b 0 ...".
+String catalogColorToMut(String? c) {
+  final hs = (c ?? '')
+      .split(',')
+      .map((x) => x.trim().replaceFirst('#', ''))
+      .where((x) => RegExp(r'^[0-9a-fA-F]{6}$').hasMatch(x))
+      .toList();
+  if (hs.isEmpty) return c ?? '';
+  String v(String h, int j) =>
+      (int.parse(h.substring(2 * j, 2 * j + 2), radix: 16) / 255).toStringAsFixed(4);
+  final out = <String>[];
+  for (var i = 0; i < hs.length; i++) {
+    final t = hs.length > 1 ? i / (hs.length - 1) : 0.0;
+    out.add('$t ${v(hs[i], 0)} ${v(hs[i], 1)} ${v(hs[i], 2)} 0');
+  }
+  return out.join(' ');
+}

@@ -39,15 +39,11 @@ jobs:
 
       - run: flutter pub get
 
-      - name: Build APK
+      - name: Ikon aplikasi dan splash
         run: |
-          flutter build apk --release > build.log 2>&1 || {
-            echo "=== RINGKASAN ERROR ==="
-            grep -n -E "Error|error:|Exception|lib/" build.log | head -40
-            echo "=== 60 BARIS TERAKHIR ==="
-            tail -60 build.log
-            exit 1
-          }
+          dart run flutter_launcher_icons || echo "ikon dilewati"
+          dart run flutter_native_splash:create || echo "splash dilewati"
+      - run: flutter build apk --release
 
       - uses: actions/upload-artifact@v4
         with:

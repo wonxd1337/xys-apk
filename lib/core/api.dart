@@ -47,7 +47,10 @@ class Api {
     if (baseUrl.isEmpty) throw ApiException('URL server belum diisi');
     final headers = <String, String>{
       'Content-Type': 'application/json',
-      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+      if (token.isNotEmpty) ...{
+        'Authorization': 'Bearer $token',
+        'X-App-Token': token,
+      },
     };
     http.Response r;
     try {
@@ -68,6 +71,9 @@ class Api {
       }
     } catch (_) {
       throw ApiException('Tidak bisa terhubung ke server');
+    }
+    if (r.statusCode == 401) {
+      throw ApiException('Token salah atau belum diisi (Pengaturan)');
     }
     if (r.statusCode != 200) throw ApiException('HTTP ${r.statusCode}');
     final d = jsonDecode(utf8.decode(r.bodyBytes));

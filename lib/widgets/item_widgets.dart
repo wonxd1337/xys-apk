@@ -73,11 +73,12 @@ class MutTag extends StatelessWidget {
 }
 
 class MaxLabel extends StatelessWidget {
-  const MaxLabel({super.key});
+  const MaxLabel({super.key, this.compact = false});
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(top: 5),
+        margin: EdgeInsets.only(top: compact ? 0 : 5),
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(99),
@@ -259,3 +260,40 @@ Widget _box(Widget child) => Container(
       ),
       child: child,
     );
+
+/// RAP · berat · selisih vs RAP (untuk kartu temuan Find Items)
+class ItemFooter extends StatelessWidget {
+  const ItemFooter(this.item, {super.key});
+  final Item item;
+
+  @override
+  Widget build(BuildContext context) {
+    final rap = item.rap, pr = item.price;
+    final df = rap > 0 ? ((pr / rap - 1) * 100).round() : null;
+    const lab = TextStyle(color: C.muted, fontSize: 10.9);
+    const val = TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700);
+    const sep = TextStyle(color: Color(0x80FFFFFF), fontSize: 12.5);
+    final parts = <InlineSpan>[];
+    void add(List<InlineSpan> p) {
+      if (parts.isNotEmpty) parts.add(const TextSpan(text: '  ·  ', style: sep));
+      parts.addAll(p);
+    }
+
+    if (rap > 0) add([const TextSpan(text: 'RAP ', style: lab), TextSpan(text: fmt(rap), style: val)]);
+    if (item.hasWeight) add([TextSpan(text: fw(item.weight), style: val)]);
+    if (df != null) {
+      add([
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Icon(df >= 0 ? FontAwesomeIcons.arrowUp : FontAwesomeIcons.arrowDown, size: 9),
+        ),
+        TextSpan(text: ' ${df.abs()}%', style: val),
+      ]);
+    }
+    if (parts.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 5),
+      child: Text.rich(TextSpan(children: parts), maxLines: 1, overflow: TextOverflow.ellipsis),
+    );
+  }
+}

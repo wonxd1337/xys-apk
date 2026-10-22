@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../core/sfx.dart';
 import 'glass_card.dart';
 
 /// Toast pil kaca di bawah layar (muncul memantul, hilang setelah ~2.6 dtk).
@@ -7,6 +8,7 @@ void showToast(BuildContext context, String msg,
     {IconData icon = FontAwesomeIcons.circleCheck}) {
   final overlay = Overlay.maybeOf(context);
   if (overlay == null) return;
+  Sfx.toast(icon);
   late OverlayEntry e;
   e = OverlayEntry(
     builder: (_) => _Toast(msg: msg, icon: icon, onDone: () => e.remove()),

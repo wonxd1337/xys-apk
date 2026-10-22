@@ -37,3 +37,13 @@ Menu > Pengaturan > isi URL server (folder berisi api.php) > Simpan.
 
 ## Catatan versi Flutter
 Paket font_awesome_flutter 10.x belum cocok dengan Flutter terbaru (IconData jadi final). Karena itu proyek ini dikunci ke Flutter 3.35.x, baik di GitHub Actions maupun di PC.
+
+## Proteksi api.php (opsional, file auth.php)
+1. Upload auth.php ke folder yang sama dengan index.php dan api.php.
+2. Isi APP_SECRET di auth.php dengan teks acak panjang.
+3. Di api.php, tepat SETELAH baris `$action = $_GET['action'] ?? '';` tambahkan:
+   require_once __DIR__ . '/auth.php'; appAuthApi($action);
+4. Di index.php, jadikan baris PERTAMA setelah `<?php`:
+   require_once __DIR__ . '/auth.php'; appAuthWeb();
+5. Di aplikasi: Pengaturan > Token > isi APP_SECRET yang sama.
+Bot Roblox tidak terpengaruh. Kalau APP_SECRET dikosongkan, semuanya kembali terbuka seperti sebelumnya.

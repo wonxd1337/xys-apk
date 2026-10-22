@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/api.dart';
+import 'core/sfx.dart';
 import 'core/theme.dart';
 import 'screens/home_shell.dart';
 
@@ -13,6 +14,7 @@ Future<void> main() async {
     statusBarIconBrightness: Brightness.light,
   ));
   await Api.load();
+  await Sfx.load();
   runApp(const DeoxysApp());
 }
 

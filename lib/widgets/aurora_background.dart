@@ -1,21 +1,50 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Latar Aurora: gradient radial gelap, gambar hitam-putih (Ken Burns),
-/// overlay gelap di kiri/bawah, dan partikel naik.
-/// Gambar: taruh di assets/images/bg.jpg (opsional).
-class AuroraBackground extends StatelessWidget {
-  const AuroraBackground({
-    super.key,
-    required this.child,
-    this.image = const AssetImage('assets/images/bg.jpg'),
-  });
-
+/// overlay gelap, dan partikel naik.
+/// Gambar dicari otomatis di assets/images/ (prioritas: image.*, lalu bg.*, lalu file pertama).
+class AuroraBackground extends StatefulWidget {
+  const AuroraBackground({super.key, required this.child});
   final Widget child;
-  final ImageProvider? image;
+
+  @override
+  State<AuroraBackground> createState() => _AuroraBackgroundState();
+}
+
+class _AuroraBackgroundState extends State<AuroraBackground> {
+  ImageProvider? _img;
+
+  @override
+  void initState() {
+    super.initState();
+    _find();
+  }
+
+  Future<void> _find() async {
+    try {
+      final m = await AssetManifest.loadFromAssetBundle(rootBundle);
+      final all = m
+          .listAssets()
+          .where((a) =>
+              a.startsWith('assets/images/') &&
+              RegExp(r'\.(jpe?g|png|webp)$', caseSensitive: false).hasMatch(a))
+          .toList()
+        ..sort();
+      if (all.isEmpty) return;
+      String name(String a) => a.split('/').last.toLowerCase();
+      final pick = all.firstWhere(
+        (a) => name(a).startsWith('image.'),
+        orElse: () => all.firstWhere((a) => name(a).startsWith('bg.'), orElse: () => all.first),
+      );
+      if (mounted) setState(() => _img = AssetImage(pick));
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
+    final narrow = MediaQuery.of(context).size.width < 700;
     return Stack(
       children: [
         const Positioned.fill(
@@ -30,45 +59,49 @@ class AuroraBackground extends StatelessWidget {
             ),
           ),
         ),
-        if (image != null) Positioned.fill(child: _KenBurns(image: image!)),
-        const Positioned.fill(
+        if (_img != null)
+          Positioned.fill(child: _KenBurns(image: _img!, opacity: narrow ? 0.62 : 0.5)),
+        Positioned.fill(
           child: IgnorePointer(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: [Colors.black, Color(0xBB000000), Colors.transparent],
-                  stops: [0, 0.3, 0.75],
+                  colors: narrow
+                      ? const [Color(0x99000000), Color(0x40000000), Colors.transparent]
+                      : const [Colors.black, Color(0xBB000000), Colors.transparent],
+                  stops: const [0, 0.3, 0.75],
                 ),
               ),
             ),
           ),
         ),
-        const Positioned.fill(
+        Positioned.fill(
           child: IgnorePointer(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [Color(0xAA000000), Colors.transparent],
-                  stops: [0, 0.4],
+                  colors: [Color(narrow ? 0x88000000 : 0xAA000000), Colors.transparent],
+                  stops: const [0, 0.4],
                 ),
               ),
             ),
           ),
         ),
         const Positioned.fill(child: _Particles()),
-        Positioned.fill(child: child),
+        Positioned.fill(child: widget.child),
       ],
     );
   }
 }
 
 class _KenBurns extends StatefulWidget {
-  const _KenBurns({required this.image});
+  const _KenBurns({required this.image, required this.opacity});
   final ImageProvider image;
+  final double opacity;
 
   @override
   State<_KenBurns> createState() => _KenBurnsState();
@@ -106,7 +139,7 @@ class _KenBurnsState extends State<_KenBurns> with SingleTickerProviderStateMixi
           );
         },
         child: Opacity(
-          opacity: 0.5,
+          opacity: widget.opacity,
           child: ColorFiltered(
             colorFilter: const ColorFilter.matrix(_m),
             child: Image(

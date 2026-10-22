@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/format.dart';
+import '../core/sfx.dart';
 import '../core/theme.dart';
 import '../models/item.dart';
 import '../state/dash_state.dart';
@@ -15,6 +16,7 @@ import '../widgets/gradient_text.dart';
 import '../widgets/item_card.dart';
 import '../widgets/item_widgets.dart';
 import '../widgets/oxz_loader.dart';
+import '../widgets/reveal.dart';
 import '../widgets/skip_dialog.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/toast.dart';
@@ -379,11 +381,11 @@ class _DashboardViewState extends State<DashboardView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _title(),
+                      Reveal(child: _title()),
                       if (st.error != null) _errorBanner(),
                       _banner(),
                       _stats(),
-                      _toolbar(),
+                      Reveal(index: 4, child: _toolbar()),
                       if (!bo && cats.isNotEmpty) _cats(cats),
                     ],
                   ),
@@ -403,7 +405,7 @@ class _DashboardViewState extends State<DashboardView> {
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (_, i) => _card(list[i]),
+                      (_, i) => _card(list[i], i),
                       childCount: list.length,
                     ),
                   ),
@@ -537,9 +539,17 @@ class _DashboardViewState extends State<DashboardView> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(children: [
-        Row(children: [Expanded(child: c[0]), const SizedBox(width: 8), Expanded(child: c[1])]),
+        Row(children: [
+          Expanded(child: Reveal(index: 1, child: c[0])),
+          const SizedBox(width: 8),
+          Expanded(child: Reveal(index: 2, child: c[1])),
+        ]),
         const SizedBox(height: 8),
-        Row(children: [Expanded(child: c[2]), const SizedBox(width: 8), Expanded(child: c[3])]),
+        Row(children: [
+          Expanded(child: Reveal(index: 3, child: c[2])),
+          const SizedBox(width: 8),
+          Expanded(child: Reveal(index: 4, child: c[3])),
+        ]),
       ]),
     );
   }
@@ -549,6 +559,7 @@ class _DashboardViewState extends State<DashboardView> {
     return GestureDetector(
       onTap: () {
         if (tab == t) return;
+        Sfx.click();
         setState(() {
           tab = t;
           sel.clear();
@@ -731,7 +742,7 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  Widget _card(Item it) {
+  Widget _card(Item it, int idx) {
     final bo = tab == DashTab.booth;
     final selected = sel.contains(it.uuid);
     final sp = _selPrice();
@@ -740,6 +751,7 @@ class _DashboardViewState extends State<DashboardView> {
       key: ValueKey('${tab.name}-${it.uuid}'),
       padding: const EdgeInsets.only(bottom: 10),
       child: ItemCard(
+        index: idx,
         item: it,
         isBooth: bo,
         full: st.full,

@@ -8,9 +8,12 @@ import '../widgets/aurora_background.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/oxz_loader.dart';
 import 'dashboard_view.dart';
+import '../widgets/reveal.dart';
+import 'find_view.dart';
 import 'history_view.dart';
 import 'queue_view.dart';
 import 'settings_view.dart';
+import 'webhook_view.dart';
 
 enum AppView { dash, queue, hist, wh, find, settings }
 
@@ -100,17 +103,28 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               children: [
                 Column(
                   children: [
-                    _header(w),
+                    Reveal(dy: -24, child: _header(w)),
                     Expanded(
                       child: IndexedStack(
                         index: _view.index,
                         children: [
-                          const DashboardView(),
-                          const QueueView(),
-                          const HistoryView(),
-                          _soon(FontAwesomeIcons.discord, 'Webhook'),
-                          _soon(FontAwesomeIcons.magnifyingGlass, 'Find Items'),
-                          SettingsView(onSaved: () => _go(AppView.dash)),
+                          ViewEntrance(
+                              active: _view == AppView.dash, child: const DashboardView()),
+                          ViewEntrance(
+                              active: _view == AppView.queue, child: const QueueView()),
+                          ViewEntrance(
+                              active: _view == AppView.hist, child: const HistoryView()),
+                          ViewEntrance(
+                              active: _view == AppView.wh,
+                              child: WebhookView(active: _view == AppView.wh)),
+                          ViewEntrance(
+                              active: _view == AppView.find,
+                              child: FindView(
+                                  active: _view == AppView.find,
+                                  onGoWebhook: () => _go(AppView.wh))),
+                          ViewEntrance(
+                              active: _view == AppView.settings,
+                              child: SettingsView(onSaved: () => _go(AppView.dash))),
                         ],
                       ),
                     ),
@@ -339,14 +353,14 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   ),
                 ]),
                 const SizedBox(height: 22),
-                _nav(AppView.dash, FontAwesomeIcons.gaugeHigh, 'Dashboard'),
+                _nav(AppView.dash, FontAwesomeIcons.gaugeHigh, 'Dashboard', i: 0),
                 _nav(AppView.queue, FontAwesomeIcons.bagShopping, 'Antrian Jual',
-                    badge: dash.queue.length),
-                _nav(AppView.hist, FontAwesomeIcons.clockRotateLeft, 'Riwayat Penjualan'),
-                _nav(AppView.wh, FontAwesomeIcons.discord, 'Webhook'),
-                _nav(AppView.find, FontAwesomeIcons.magnifyingGlass, 'Find Items'),
+                    badge: dash.queue.length, i: 1),
+                _nav(AppView.hist, FontAwesomeIcons.clockRotateLeft, 'Riwayat Penjualan', i: 2),
+                _nav(AppView.wh, FontAwesomeIcons.discord, 'Webhook', i: 3),
+                _nav(AppView.find, FontAwesomeIcons.magnifyingGlass, 'Find Items', i: 4),
                 const Spacer(),
-                _nav(AppView.settings, FontAwesomeIcons.gear, 'Pengaturan'),
+                _nav(AppView.settings, FontAwesomeIcons.gear, 'Pengaturan', i: 6),
               ],
             ),
           ),
@@ -355,9 +369,17 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     );
   }
 
-  Widget _nav(AppView v, IconData icon, String label, {int badge = 0}) {
+  Widget _nav(AppView v, IconData icon, String label, {int badge = 0, int i = 0}) {
     final a = _view == v;
-    return Padding(
+    final ms = 320 + 70 * i;
+    return AnimatedSlide(
+      offset: Offset(_drawer ? 0 : -0.35, 0),
+      duration: Duration(milliseconds: ms),
+      curve: Curves.easeOutCubic,
+      child: AnimatedOpacity(
+        opacity: _drawer ? 1 : 0,
+        duration: Duration(milliseconds: ms),
+        child: Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -393,7 +415,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           ]),
         ),
       ),
-    );
+    )));
   }
 }
 

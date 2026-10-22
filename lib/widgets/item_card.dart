@@ -6,6 +6,7 @@ import '../models/item.dart';
 import 'glass_card.dart';
 import 'glass_input.dart';
 import 'glow_button.dart';
+import 'reveal.dart';
 import 'item_widgets.dart';
 import 'spin_border.dart';
 
@@ -20,6 +21,7 @@ class ItemCard extends StatefulWidget {
     required this.selMode,
     required this.selected,
     required this.dimmed,
+    this.index = 0,
     this.iconUrl,
     this.priceCtl,
     this.onTapSelect,
@@ -36,6 +38,7 @@ class ItemCard extends StatefulWidget {
   final bool selMode;
   final bool selected;
   final bool dimmed;
+  final int index;
   final String? iconUrl;
   final TextEditingController? priceCtl;
   final VoidCallback? onTapSelect;
@@ -226,7 +229,9 @@ class _ItemCardState extends State<ItemCard> {
       );
     }
 
-    return Opacity(
+    return Reveal(
+      index: w.index,
+      child: Opacity(
       opacity: w.dimmed ? 0.35 : 1,
       child: Stack(
         clipBehavior: Clip.none,
@@ -263,6 +268,6 @@ class _ItemCardState extends State<ItemCard> {
             ),
         ],
       ),
-    );
+    ));
   }
 }

@@ -5,6 +5,7 @@ import '../core/theme.dart';
 import '../models/item.dart';
 import 'glass_card.dart';
 import 'item_widgets.dart';
+import 'reveal.dart';
 
 /// Lencana harga kuning (.bd.pr)
 class PriceBadge extends StatelessWidget {
@@ -60,6 +61,7 @@ class ItemRow extends StatelessWidget {
     this.iconUrl,
     this.price,
     this.actions = const [],
+    this.index = 0,
   });
 
   final Item item;
@@ -67,10 +69,13 @@ class ItemRow extends StatelessWidget {
   final String? iconUrl;
   final num? price;
   final List<Widget> actions;
+  final int index;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Reveal(
+      index: index,
+      child: Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
         radius: 24,
@@ -100,6 +105,6 @@ class ItemRow extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
