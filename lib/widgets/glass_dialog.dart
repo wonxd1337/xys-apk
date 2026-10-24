@@ -27,9 +27,7 @@ Future<T?> showGlassDialog<T>(BuildContext context, WidgetBuilder builder) {
         ),
       ),
     ),
-    transitionBuilder: (ctx, a, _, child) => FadeTransition(
-      opacity: a,
-      child: BackdropFilter(
+    transitionBuilder: (ctx, a, _, child) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: ScaleTransition(
           scale: Tween<double>(begin: 0.8, end: 1)
@@ -38,6 +36,5 @@ Future<T?> showGlassDialog<T>(BuildContext context, WidgetBuilder builder) {
           child: child,
         ),
       ),
-    ),
   );
 }

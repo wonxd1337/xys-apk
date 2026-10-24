@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/api.dart';
+import 'core/fx.dart';
 import 'core/sfx.dart';
 import 'core/theme.dart';
 import 'screens/home_shell.dart';
@@ -15,6 +16,7 @@ Future<void> main() async {
   ));
   await Api.load();
   await Sfx.load();
+  await Fx.load();
   runApp(const DeoxysApp());
 }
 

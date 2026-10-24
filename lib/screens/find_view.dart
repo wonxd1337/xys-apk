@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../core/fa.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/api.dart';
@@ -94,7 +95,7 @@ class _FindViewState extends State<FindView> {
     }
   }
 
-  void _toast(String m, {IconData icon = FontAwesomeIcons.circleCheck}) {
+  void _toast(String m, {IconData icon = FaS.circleCheck}) {
     if (mounted) showToast(context, m, icon: icon);
   }
 
@@ -228,12 +229,12 @@ class _FindViewState extends State<FindView> {
       _toast('Pilih webhook Find Items dulu', icon: FontAwesomeIcons.circleExclamation);
       return;
     }
-    _toast('Mengirim tes...', icon: FontAwesomeIcons.paperPlane);
+    _toast('Mengirim tes...', icon: FaS.paperPlane);
     final r = await _post('find_test', {});
     if (r == null) return;
     _toast('${r['message'] ?? ''}',
         icon: r['status'] == 'ok'
-            ? FontAwesomeIcons.circleCheck
+            ? FaS.circleCheck
             : FontAwesomeIcons.triangleExclamation);
     _load();
   }
@@ -308,9 +309,9 @@ class _FindViewState extends State<FindView> {
     final ok = await confirmBox(
       context,
       title: 'Hapus aturan?',
-      icon: FontAwesomeIcons.trashCan,
+      icon: FaS.trashCan,
       danger: true,
-      okIcon: FontAwesomeIcons.trashCan,
+      okIcon: FaS.trashCan,
       okLabel: 'Ya, Hapus',
       body: Container(
         width: double.infinity,
@@ -333,7 +334,7 @@ class _FindViewState extends State<FindView> {
     if (!ok) return;
     final x = await _post('find_rule_delete', {'id': numOf(r['id']).toInt()});
     if (x == null) return;
-    _toast('${x['message'] ?? 'Dihapus'}', icon: FontAwesomeIcons.trashCan);
+    _toast('${x['message'] ?? 'Dihapus'}', icon: FaS.trashCan);
     _load();
   }
 
@@ -378,10 +379,10 @@ class _FindViewState extends State<FindView> {
             else
               for (var i = 0; i < _rules.length; i++) _ruleCard(_rules[i], i),
             const SizedBox(height: 10),
-            _sec(FontAwesomeIcons.bell, 'Temuan terbaru'),
+            _sec(FaS.bell, 'Temuan terbaru'),
             const SizedBox(height: 12),
             if (_hits.isEmpty)
-              const EmptyState(FontAwesomeIcons.bellSlash, 'Belum ada temuan')
+              const EmptyState(FaS.bellSlash, 'Belum ada temuan')
             else
               for (var i = 0; i < _hits.length; i++) _hitCard(_hits[i], i),
           ],
@@ -446,12 +447,12 @@ class _FindViewState extends State<FindView> {
           'Gagal${numOf(ls) > 0 ? ' (HTTP ${numOf(ls).toInt()})' : ''}', true, go);
     } else if (ls != null) {
       chip = _chip(
-          FontAwesomeIcons.circleCheck,
+          FaS.circleCheck,
           'Terkirim ${ago(h?['last_ago'] == null ? null : numOf(h!['last_ago']).toInt())} lalu',
           false,
           false);
     } else {
-      chip = _chip(FontAwesomeIcons.circleCheck, 'Webhook siap', false, false);
+      chip = _chip(FaS.circleCheck, 'Webhook siap', false, false);
     }
 
     final opts = <DropOpt>[
@@ -460,9 +461,8 @@ class _FindViewState extends State<FindView> {
           strOf(w['name']) + (numOf(w['enabled']) != 0 ? '' : ' (nonaktif)'))),
     ];
 
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 300),
-      opacity: on ? 1 : 0.72,
+    return GlassDim(
+          opacity: on ? 1 : 0.72,
       child: GlassCard(
         radius: 24,
         padding: const EdgeInsets.all(14),
@@ -509,7 +509,7 @@ class _FindViewState extends State<FindView> {
               const SizedBox(width: 8),
               GlowButton(
                 kind: BtnKind.dark,
-                icon: FontAwesomeIcons.paperPlane,
+                icon: FaS.paperPlane,
                 height: 46,
                 width: 48,
                 radius: 14,
@@ -588,14 +588,13 @@ class _FindViewState extends State<FindView> {
       if (mpr > 0) Pill(FontAwesomeIcons.coins, '≤ ${fmt(mpr)}', gold: true),
     ];
     if (spec.isEmpty) spec.add(const Pill(FontAwesomeIcons.infinity, 'Berat & harga bebas'));
-    if (hits > 0) spec.add(Pill(FontAwesomeIcons.bell, fmt(hits)));
+    if (hits > 0) spec.add(Pill(FaS.bell, fmt(hits)));
 
     return Reveal(
       index: i,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 300),
+        child: GlassDim(
           opacity: on ? 1 : 0.55,
           child: GlassCard(
             radius: 24,
@@ -650,7 +649,7 @@ class _FindViewState extends State<FindView> {
                     width: 52,
                     radius: 13,
                     padding: EdgeInsets.zero,
-                    icon: FontAwesomeIcons.trashCan,
+                    icon: FaS.trashCan,
                     onPressed: () => _deleteRule(r),
                   ),
                 ]),
@@ -689,9 +688,9 @@ class _FindViewState extends State<FindView> {
                     const SizedBox(height: 6),
                     Wrap(spacing: 6, runSpacing: 6, children: [
                       if (it.size == 'big') const Pill(FontAwesomeIcons.rulerCombined, 'Big'),
-                      Pill(FontAwesomeIcons.user,
+                      Pill(FaS.user,
                           strOf(h['seller']).isEmpty ? '-' : strOf(h['seller'])),
-                      if (a != null) Pill(FontAwesomeIcons.clock, ago(numOf(a).toInt())),
+                      if (a != null) Pill(FaS.clock, ago(numOf(a).toInt())),
                     ]),
                     ItemFooter(it),
                   ],
@@ -735,7 +734,7 @@ class _FindViewState extends State<FindView> {
             ]),
             const SizedBox(height: 18),
             _step(
-              FontAwesomeIcons.gem,
+              FaS.gem,
               'Item',
               _TagPicker(
                 selected: _selItems,
@@ -806,7 +805,7 @@ class _FindViewState extends State<FindView> {
               const SizedBox(width: 10),
               Expanded(
                 child: GlowButton(
-                  icon: FontAwesomeIcons.floppyDisk,
+                  icon: FaS.floppyDisk,
                   label: _saving ? 'Menyimpan...' : 'Simpan',
                   expand: true,
                   onPressed: _saving ? null : _saveRule,

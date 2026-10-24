@@ -1,4 +1,5 @@
 import 'dart:ui';
+import '../core/fa.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'glass_card.dart';
@@ -10,7 +11,7 @@ Future<bool> confirmBox(
   BuildContext context, {
   required String title,
   required Widget body,
-  IconData icon = FontAwesomeIcons.circleQuestion,
+  IconData icon = FaS.circleQuestion,
   String okLabel = 'Ya',
   IconData? okIcon,
   String cancelLabel = 'Batal',
@@ -89,9 +90,7 @@ Future<bool> confirmBox(
         ),
       ),
     ),
-    transitionBuilder: (ctx, a, _, child) => FadeTransition(
-      opacity: a,
-      child: BackdropFilter(
+    transitionBuilder: (ctx, a, _, child) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: ScaleTransition(
           scale: Tween<double>(begin: 0.8, end: 1)
@@ -100,7 +99,6 @@ Future<bool> confirmBox(
           child: child,
         ),
       ),
-    ),
   );
   return r ?? false;
 }

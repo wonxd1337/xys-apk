@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/fa.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/api.dart';
 import '../core/format.dart';
@@ -86,7 +87,7 @@ class _WebhookViewState extends State<WebhookView> {
   List<Map<String, dynamic>> get _list => mapsOf(_wh?['webhooks']);
   List<String> get _bots => ((_wh?['bots'] as List?) ?? []).map((e) => '$e').toList();
 
-  void _toast(String m, {IconData icon = FontAwesomeIcons.circleCheck}) {
+  void _toast(String m, {IconData icon = FaS.circleCheck}) {
     if (mounted) showToast(context, m, icon: icon);
   }
 
@@ -180,12 +181,12 @@ class _WebhookViewState extends State<WebhookView> {
   }
 
   Future<void> _test(Map<String, dynamic> w) async {
-    _toast('Mengirim tes...', icon: FontAwesomeIcons.paperPlane);
+    _toast('Mengirim tes...', icon: FaS.paperPlane);
     final r = await _post('wh_test', {'id': numOf(w['id']).toInt()});
     if (r == null) return;
     _toast('${r['message'] ?? ''}',
         icon: r['status'] == 'ok'
-            ? FontAwesomeIcons.circleCheck
+            ? FaS.circleCheck
             : FontAwesomeIcons.triangleExclamation);
     _load();
   }
@@ -196,9 +197,9 @@ class _WebhookViewState extends State<WebhookView> {
     final ok = await confirmBox(
       context,
       title: 'Hapus webhook?',
-      icon: FontAwesomeIcons.trashCan,
+      icon: FaS.trashCan,
       danger: true,
-      okIcon: FontAwesomeIcons.trashCan,
+      okIcon: FaS.trashCan,
       okLabel: 'Ya, Hapus',
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,7 +227,7 @@ class _WebhookViewState extends State<WebhookView> {
     if (!ok) return;
     final r = await _post('wh_delete', {'id': numOf(w['id']).toInt()});
     if (r == null) return;
-    _toast('${r['message'] ?? 'Dihapus'}', icon: FontAwesomeIcons.trashCan);
+    _toast('${r['message'] ?? 'Dihapus'}', icon: FaS.trashCan);
     _load();
   }
 
@@ -265,7 +266,7 @@ class _WebhookViewState extends State<WebhookView> {
             ),
             const SizedBox(height: 16),
             if (list.isEmpty)
-              const EmptyState(FontAwesomeIcons.bellSlash,
+              const EmptyState(FaS.bellSlash,
                   'Belum ada webhook. Tambahkan satu untuk menerima notifikasi item terjual di Discord.')
             else
               for (var i = 0; i < list.length; i++) _card(list[i], i),
@@ -293,7 +294,7 @@ class _WebhookViewState extends State<WebhookView> {
             ? TextSpan(children: [
                 const WidgetSpan(
                     alignment: PlaceholderAlignment.middle,
-                    child: Icon(FontAwesomeIcons.circleCheck, size: 11, color: C.green)),
+                    child: Icon(FaS.circleCheck, size: 11, color: C.green)),
                 TextSpan(text: ' Terkirim $t lalu', style: const TextStyle(color: C.green)),
               ])
             : TextSpan(children: [
@@ -315,7 +316,7 @@ class _WebhookViewState extends State<WebhookView> {
         const Pill(FontAwesomeIcons.bagShopping, 'Item Terjual'),
         Pill(FontAwesomeIcons.robot, strOf(w['bot']).isEmpty ? 'Semua bot' : strOf(w['bot'])),
       ],
-      if (strOf(w['min_rarity']).isNotEmpty) Pill(FontAwesomeIcons.gem, rarLabel),
+      if (strOf(w['min_rarity']).isNotEmpty) Pill(FaS.gem, rarLabel),
       if (numOf(w['min_price']) > 0)
         Pill(FontAwesomeIcons.coins, '≥ ${fmt(numOf(w['min_price']))}', gold: true),
       if (strOf(w['mention']).isNotEmpty) const Pill(FontAwesomeIcons.at, 'Mention'),
@@ -325,8 +326,7 @@ class _WebhookViewState extends State<WebhookView> {
       index: i,
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 300),
+        child: GlassDim(
           opacity: on ? 1 : 0.55,
           child: GlassCard(
             radius: 24,
@@ -379,7 +379,7 @@ class _WebhookViewState extends State<WebhookView> {
                       height: 40,
                       radius: 13,
                       expand: true,
-                      icon: FontAwesomeIcons.paperPlane,
+                      icon: FaS.paperPlane,
                       label: 'Tes',
                       onPressed: () => _test(w),
                     ),
@@ -403,7 +403,7 @@ class _WebhookViewState extends State<WebhookView> {
                     width: 52,
                     radius: 13,
                     padding: EdgeInsets.zero,
-                    icon: FontAwesomeIcons.trashCan,
+                    icon: FaS.trashCan,
                     onPressed: () => _delete(w),
                   ),
                 ]),
@@ -501,7 +501,7 @@ class _WebhookViewState extends State<WebhookView> {
               const SizedBox(width: 10),
               Expanded(
                 child: GlowButton(
-                  icon: FontAwesomeIcons.floppyDisk,
+                  icon: FaS.floppyDisk,
                   label: _saving ? 'Menyimpan...' : 'Simpan',
                   expand: true,
                   onPressed: _saving ? null : _save,

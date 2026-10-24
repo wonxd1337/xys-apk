@@ -2,6 +2,8 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/api.dart';
+import '../core/fa.dart';
+import '../core/fx.dart';
 import '../core/theme.dart';
 import '../state/dash_state.dart';
 import '../widgets/aurora_background.dart';
@@ -13,9 +15,10 @@ import 'find_view.dart';
 import 'history_view.dart';
 import 'queue_view.dart';
 import 'settings_view.dart';
+import 'showcase_view.dart';
 import 'webhook_view.dart';
 
-enum AppView { dash, queue, hist, wh, find, settings }
+enum AppView { dash, queue, hist, wh, find, show, settings }
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -122,6 +125,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                               child: FindView(
                                   active: _view == AppView.find,
                                   onGoWebhook: () => _go(AppView.wh))),
+                          ViewEntrance(
+                              active: _view == AppView.show,
+                              child: ShowcaseView(active: _view == AppView.show)),
                           ViewEntrance(
                               active: _view == AppView.settings,
                               child: SettingsView(onSaved: () => _go(AppView.dash))),
@@ -348,7 +354,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
-                    child: Text('Deoxys Umbreon',
+                    child: Text('Preman Plaza',
                         style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
                   ),
                 ]),
@@ -359,8 +365,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 _nav(AppView.hist, FontAwesomeIcons.clockRotateLeft, 'Riwayat Penjualan', i: 2),
                 _nav(AppView.wh, FontAwesomeIcons.discord, 'Webhook', i: 3),
                 _nav(AppView.find, FontAwesomeIcons.magnifyingGlass, 'Find Items', i: 4),
+                _nav(AppView.show, FaS.star, 'Showcase Item', i: 5),
                 const Spacer(),
-                _nav(AppView.settings, FontAwesomeIcons.gear, 'Pengaturan', i: 6),
+                _nav(AppView.settings, FontAwesomeIcons.gear, 'Pengaturan', i: 7),
               ],
             ),
           ),
@@ -421,93 +428,31 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
 final _blur5 = ImageFilter.blur(sigmaX: 5, sigmaY: 5);
 
-class _Hamburger extends StatelessWidget {
+class _Hamburger extends StatefulWidget {
   const _Hamburger({required this.open, required this.onTap});
   final bool open;
   final VoidCallback onTap;
 
-  Widget _bar() => Container(
-        height: 2,
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(2)),
-      );
-
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 46,
-        height: 46,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: const Color(0x1AFFFFFF),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: C.glassBorder),
-        ),
-        child: TweenAnimationBuilder<double>(
-          tween: Tween<double>(end: open ? 1.0 : 0.0),
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeInOutCubic,
-          builder: (_, t, __) => SizedBox(
-            width: 20,
-            height: 16,
-            child: Stack(children: [
-              Positioned(
-                top: 7 * t,
-                left: 0,
-                right: 0,
-                child: Transform.rotate(angle: 0.785398 * t, child: _bar()),
-              ),
-              Positioned(
-                top: 7,
-                left: 0,
-                right: 0,
-                child: Opacity(
-                  opacity: 1 - t,
-                  child: Transform.scale(scaleX: 1 - t, child: _bar()),
-                ),
-              ),
-              Positioned(
-                top: 14 - 7 * t,
-                left: 0,
-                right: 0,
-                child: Transform.rotate(angle: -0.785398 * t, child: _bar()),
-              ),
-            ]),
-          ),
-        ),
-      ),
-    );
-  }
+  State<_Hamburger> createState() => _HamburgerState();
 }
 
-class _PulseDot extends StatefulWidget {
-  const _PulseDot({required this.color, required this.pulse});
-  final Color color;
-  final bool pulse;
+/// .hb: 3 garis jadi X (0.35s cubic-bezier(.6,0,.2,1)), tekan mengecil .88 lalu memantul.
+class _HamburgerState extends State<_Hamburger> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 350),
+    value: widget.open ? 1 : 0,
+  );
+  late final Animation<double> _t =
+      CurvedAnimation(parent: _c, curve: const Cubic(0.6, 0, 0.2, 1));
+  bool _down = false;
 
   @override
-  State<_PulseDot> createState() => _PulseDotState();
-}
-
-class _PulseDotState extends State<_PulseDot> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.pulse) _c.repeat(reverse: true);
-  }
-
-  @override
-  void didUpdateWidget(covariant _PulseDot old) {
+  void didUpdateWidget(covariant _Hamburger old) {
     super.didUpdateWidget(old);
-    if (widget.pulse && !_c.isAnimating) {
-      _c.repeat(reverse: true);
-    } else if (!widget.pulse) {
-      _c.stop();
-      _c.value = 0;
+    if (widget.open != old.open) {
+      widget.open ? _c.forward() : _c.reverse();
     }
   }
 
@@ -517,23 +462,110 @@ class _PulseDotState extends State<_PulseDot> with SingleTickerProviderStateMixi
     super.dispose();
   }
 
+  Widget _bar() => Container(
+        width: 20,
+        height: 2,
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(2)),
+      );
+
   @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-        animation: _c,
-        builder: (_, __) => Opacity(
-          opacity: 1 - 0.45 * _c.value,
-          child: Transform.scale(
-            scale: 1 + 0.18 * _c.value,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.color,
-                boxShadow: [BoxShadow(color: widget.color.withAlpha(150), blurRadius: 8)],
-              ),
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _down = true),
+      onTapCancel: () => setState(() => _down = false),
+      onTapUp: (_) => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _down ? 0.88 : 1,
+        duration: Duration(milliseconds: _down ? 90 : 250),
+        curve: _down ? Curves.easeOut : const Cubic(0.34, 1.7, 0.5, 1),
+        child: Container(
+          width: 46,
+          height: 46,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0x1AFFFFFF),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: C.glassBorder),
+          ),
+          child: AnimatedBuilder(
+            animation: _t,
+            builder: (_, __) {
+              final t = _t.value;
+              return SizedBox(
+                width: 20,
+                height: 16,
+                child: Stack(children: [
+                  Positioned(
+                    top: 0,
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..translate(0.0, 7 * t)
+                        ..rotateZ(0.785398 * t),
+                      child: _bar(),
+                    ),
+                  ),
+                  Positioned(
+                    top: 7,
+                    child: Opacity(
+                      opacity: (1 - t).clamp(0.0, 1.0).toDouble(),
+                      child: Transform.scale(scaleX: (1 - t).clamp(0.0, 1.0).toDouble(), child: _bar()),
+                    ),
+                  ),
+                  Positioned(
+                    top: 14,
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..translate(0.0, -7 * t)
+                        ..rotateZ(-0.785398 * t),
+                      child: _bar(),
+                    ),
+                  ),
+                ]),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Titik status berdenyut (pul), digerakkan detak latar supaya tidak menambah frame ekstra.
+class _PulseDot extends StatelessWidget {
+  const _PulseDot({required this.color, required this.pulse});
+  final Color color;
+  final bool pulse;
+
+  Widget _dot(double op, double sc) => Opacity(
+        opacity: op,
+        child: Transform.scale(
+          scale: sc,
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+              boxShadow: [BoxShadow(color: color.withAlpha(150), blurRadius: 8)],
             ),
           ),
         ),
       );
+
+  @override
+  Widget build(BuildContext context) {
+    if (!pulse) return _dot(1, 1);
+    return ValueListenableBuilder<int>(
+      valueListenable: Fx.tick,
+      builder: (_, __, ___) {
+        final t = (Fx.clock.elapsedMilliseconds % 1600) / 1600.0;
+        final k = 1 - (2 * t - 1).abs();
+        return _dot(1 - 0.45 * k, 1 + 0.18 * k);
+      },
+    );
+  }
 }

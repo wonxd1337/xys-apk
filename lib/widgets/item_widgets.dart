@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/fa.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/format.dart';
 import '../core/theme.dart';
@@ -13,7 +14,7 @@ class ItemIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = Icon(FontAwesomeIcons.gem, size: size * 0.38, color: C.muted);
+    final fallback = Icon(FaS.gem, size: size * 0.38, color: C.muted);
     return Container(
       width: size,
       height: size,

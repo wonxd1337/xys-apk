@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/fa.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/format.dart';
 import '../core/theme.dart';
@@ -43,7 +44,7 @@ class _QueueViewState extends State<QueueView> {
     final r = await st.run({'type': type, 'queue_id': '${q['id']}'});
     if (!mounted) return;
     showToast(context, r.message,
-        icon: r.ok ? FontAwesomeIcons.circleCheck : FontAwesomeIcons.triangleExclamation);
+        icon: r.ok ? FaS.circleCheck : FontAwesomeIcons.triangleExclamation);
   }
 
   Future<void> _clear() async {
@@ -53,9 +54,9 @@ class _QueueViewState extends State<QueueView> {
     final ok = await confirmBox(
       context,
       title: 'Hapus semua antrian?',
-      icon: FontAwesomeIcons.trashCan,
+      icon: FaS.trashCan,
       danger: true,
-      okIcon: FontAwesomeIcons.trashCan,
+      okIcon: FaS.trashCan,
       okLabel: 'Ya, Hapus Semua',
       body: ManySummary(
         items: items,
@@ -68,7 +69,7 @@ class _QueueViewState extends State<QueueView> {
     final r = await st.run({'type': 'clear_queue'});
     if (!mounted) return;
     showToast(context, r.message,
-        icon: r.ok ? FontAwesomeIcons.trashCan : FontAwesomeIcons.triangleExclamation);
+        icon: r.ok ? FaS.trashCan : FontAwesomeIcons.triangleExclamation);
   }
 
   @override
@@ -100,7 +101,7 @@ class _QueueViewState extends State<QueueView> {
                       padding: const EdgeInsets.only(bottom: 18),
                       child: GlowButton(
                         kind: BtnKind.trash,
-                        icon: FontAwesomeIcons.trashCan,
+                        icon: FaS.trashCan,
                         label: 'Hapus Semua Antrian',
                         onPressed: _clear,
                       ),

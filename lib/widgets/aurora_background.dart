@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../core/fx.dart';
 
-/// Latar Aurora: gradient radial gelap, gambar hitam-putih (Ken Burns),
-/// overlay gelap, dan partikel naik.
-/// Gambar dicari otomatis di assets/images/ (prioritas: image.*, lalu bg.*, lalu file pertama).
+/// Latar Aurora yang ringan:
+///  - gambar di-decode kecil sekali, dijadikan hitam-putih sekali (bukan filter tiap frame),
+///  - Ken Burns + partikel digambar langsung di canvas (tanpa saveLayer), ~25 fps,
+///  - berhenti otomatis saat app tidak aktif atau mode ringan.
+/// Gambar dicari di assets/images/ (prioritas: image.*, lalu bg.*, lalu file pertama).
 class AuroraBackground extends StatefulWidget {
   const AuroraBackground({super.key, required this.child});
   final Widget child;
@@ -13,16 +18,69 @@ class AuroraBackground extends StatefulWidget {
   State<AuroraBackground> createState() => _AuroraBackgroundState();
 }
 
-class _AuroraBackgroundState extends State<AuroraBackground> {
-  ImageProvider? _img;
+class _P {
+  const _P(this.x, this.y, this.v, this.a);
+  final double x, y, v, a;
+}
+
+class _AuroraBackgroundState extends State<AuroraBackground> with WidgetsBindingObserver {
+  ui.Image? _img;
+  Timer? _timer;
+  bool _resumed = true;
+  late final List<List<_P>> _groups = () {
+    final r = math.Random(7);
+    return List.generate(3, (g) => List.generate(14, (_) => _P(r.nextDouble(), r.nextDouble(), 0.006 + r.nextDouble() * 0.012 + g * 0.004, r.nextDouble() * 6)));
+  }();
+
+  // grayscale + contrast 1.15 (dipanggang sekali)
+  static const _m = <double>[
+    0.2126 * 1.15, 0.7152 * 1.15, 0.0722 * 1.15, 0, -19.1,
+    0.2126 * 1.15, 0.7152 * 1.15, 0.0722 * 1.15, 0, -19.1,
+    0.2126 * 1.15, 0.7152 * 1.15, 0.0722 * 1.15, 0, -19.1,
+    0, 0, 0, 1, 0,
+  ];
 
   @override
   void initState() {
     super.initState();
-    _find();
+    WidgetsBinding.instance.addObserver(this);
+    Fx.light.addListener(_sync);
+    _loadImage();
+    _sync();
   }
 
-  Future<void> _find() async {
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    Fx.light.removeListener(_sync);
+    _timer?.cancel();
+    _img?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _resumed = state == AppLifecycleState.resumed;
+    _sync();
+  }
+
+  bool get _motion =>
+      _resumed &&
+      !Fx.light.value &&
+      !WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.disableAnimations;
+
+  void _sync() {
+    _timer?.cancel();
+    _timer = null;
+    if (_motion) {
+      _timer = Timer.periodic(const Duration(milliseconds: 40), (_) => Fx.tick.value++);
+    } else {
+      Fx.tick.value++; // gambar satu frame diam
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadImage() async {
     try {
       final m = await AssetManifest.loadFromAssetBundle(rootBundle);
       final all = m
@@ -38,29 +96,51 @@ class _AuroraBackgroundState extends State<AuroraBackground> {
         (a) => name(a).startsWith('image.'),
         orElse: () => all.firstWhere((a) => name(a).startsWith('bg.'), orElse: () => all.first),
       );
-      if (mounted) setState(() => _img = AssetImage(pick));
+      final data = await rootBundle.load(pick);
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: 1000);
+      final frame = await codec.getNextFrame();
+      final src = frame.image;
+      final rec = ui.PictureRecorder();
+      Canvas(rec).drawImage(src, Offset.zero, Paint()..colorFilter = const ColorFilter.matrix(_m));
+      final baked = await rec.endRecording().toImage(src.width, src.height);
+      src.dispose();
+      if (!mounted) {
+        baked.dispose();
+        return;
+      }
+      setState(() => _img = baked);
+      Fx.tick.value++;
     } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
     final narrow = MediaQuery.of(context).size.width < 700;
+    final motion = _motion;
     return Stack(
       children: [
         const Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(0.7, -1.0),
-                radius: 1.25,
-                colors: [Color(0xFF303034), Color(0xFF0C0C0D), Colors.black],
-                stops: [0, 0.48, 1],
+          child: RepaintBoundary(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0.7, -1.0),
+                  radius: 1.25,
+                  colors: [Color(0xFF303034), Color(0xFF0C0C0D), Colors.black],
+                  stops: [0, 0.48, 1],
+                ),
               ),
             ),
           ),
         ),
         if (_img != null)
-          Positioned.fill(child: _KenBurns(image: _img!, opacity: narrow ? 0.62 : 0.5)),
+          Positioned.fill(
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _ImagePainter(_img!, Fx.tick, Fx.clock, motion, narrow ? 0.62 : 0.5),
+              ),
+            ),
+          ),
         Positioned.fill(
           child: IgnorePointer(
             child: DecoratedBox(
@@ -91,132 +171,90 @@ class _AuroraBackgroundState extends State<AuroraBackground> {
             ),
           ),
         ),
-        const Positioned.fill(child: _Particles()),
+        if (motion)
+          Positioned.fill(
+            child: RepaintBoundary(
+              child: IgnorePointer(
+                child: CustomPaint(painter: _ParticlePainter(_groups, Fx.tick, Fx.clock)),
+              ),
+            ),
+          ),
         Positioned.fill(child: widget.child),
       ],
     );
   }
 }
 
-class _KenBurns extends StatefulWidget {
-  const _KenBurns({required this.image, required this.opacity});
-  final ImageProvider image;
+class _ImagePainter extends CustomPainter {
+  _ImagePainter(this.img, Listenable tick, this.sw, this.motion, this.opacity) : super(repaint: tick);
+  final ui.Image img;
+  final Stopwatch sw;
+  final bool motion;
   final double opacity;
-
-  @override
-  State<_KenBurns> createState() => _KenBurnsState();
-}
-
-class _KenBurnsState extends State<_KenBurns> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 26))
-        ..repeat(reverse: true);
-
-  // grayscale + contrast 1.15
-  static const _m = <double>[
-    0.2126 * 1.15, 0.7152 * 1.15, 0.0722 * 1.15, 0, -19.1,
-    0.2126 * 1.15, 0.7152 * 1.15, 0.0722 * 1.15, 0, -19.1,
-    0.2126 * 1.15, 0.7152 * 1.15, 0.0722 * 1.15, 0, -19.1,
-    0, 0, 0, 1, 0,
-  ];
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (_, child) {
-          final t = Curves.easeInOut.transform(_c.value);
-          return Transform.scale(
-            scale: 1 + 0.12 * t,
-            child: FractionalTranslation(translation: Offset(-0.02 * t, 0), child: child),
-          );
-        },
-        child: Opacity(
-          opacity: widget.opacity,
-          child: ColorFiltered(
-            colorFilter: const ColorFilter.matrix(_m),
-            child: Image(
-              image: widget.image,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _P {
-  _P(this.x, this.y, this.r, this.v, this.a);
-  double x, y;
-  final double r, v, a;
-}
-
-class _Particles extends StatefulWidget {
-  const _Particles();
-
-  @override
-  State<_Particles> createState() => _ParticlesState();
-}
-
-class _ParticlesState extends State<_Particles> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat();
-  final List<_P> _ps = [];
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => RepaintBoundary(
-        child: IgnorePointer(
-          child: CustomPaint(size: Size.infinite, painter: _PP(_c, _ps)),
-        ),
-      );
-}
-
-class _PP extends CustomPainter {
-  _PP(this.c, this.ps) : super(repaint: c);
-  final AnimationController c;
-  final List<_P> ps;
-  final _rnd = math.Random();
 
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
-    if (ps.isEmpty) {
-      for (var i = 0; i < 70; i++) {
-        ps.add(_P(_rnd.nextDouble() * size.width, _rnd.nextDouble() * size.height,
-            _rnd.nextDouble() * 2 + 0.4, _rnd.nextDouble() * 0.6 + 0.2, _rnd.nextDouble() * 6));
-      }
+    double k = 0;
+    if (motion) {
+      final p = (sw.elapsedMilliseconds / 1000 / 26) % 2;
+      k = Curves.easeInOut.transform(p < 1 ? p : 2 - p);
     }
-    final paint = Paint();
-    for (final p in ps) {
-      p.y -= p.v;
-      p.x += math.sin(p.y / 60 + p.a) * 0.3;
-      if (p.y < -5) {
-        p.y = size.height + 5;
-        p.x = _rnd.nextDouble() * size.width;
+    final ia = img.width / img.height, da = size.width / size.height;
+    double w, h;
+    if (ia > da) {
+      h = img.height.toDouble();
+      w = h * da;
+    } else {
+      w = img.width.toDouble();
+      h = w / da;
+    }
+    final src = Rect.fromLTWH((img.width - w) / 2, (img.height - h) / 2, w, h);
+    canvas.save();
+    canvas.translate(size.width / 2 - 0.02 * k * size.width, size.height / 2);
+    canvas.scale(1 + 0.12 * k);
+    canvas.translate(-size.width / 2, -size.height / 2);
+    canvas.drawImageRect(
+      img,
+      src,
+      Offset.zero & size,
+      Paint()
+        ..filterQuality = FilterQuality.low
+        ..color = Color.fromRGBO(255, 255, 255, opacity),
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _ImagePainter o) =>
+      o.img != img || o.motion != motion || o.opacity != opacity;
+}
+
+class _ParticlePainter extends CustomPainter {
+  _ParticlePainter(this.groups, Listenable tick, this.sw) : super(repaint: tick);
+  final List<List<_P>> groups;
+  final Stopwatch sw;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final s = sw.elapsedMilliseconds / 1000;
+    final paint = Paint()..strokeCap = StrokeCap.round;
+    const widths = [1.6, 2.6, 3.6];
+    for (var g = 0; g < groups.length; g++) {
+      final pts = <Offset>[];
+      for (final p in groups[g]) {
+        final y = ((p.y - p.v * s) % 1.0 + 1.0) % 1.0;
+        final x = p.x + 0.02 * math.sin(y * 18 + p.a);
+        pts.add(Offset(x * size.width, y * size.height));
       }
-      final op = (0.12 + 0.5 * math.sin(p.y / 90 + p.a).abs()).clamp(0.0, 1.0).toDouble();
-      paint.color = Color.fromRGBO(255, 255, 255, op);
-      canvas.drawCircle(Offset(p.x, p.y), p.r, paint);
+      paint
+        ..strokeWidth = widths[g]
+        ..color = Color.fromRGBO(255, 255, 255, 0.16 + 0.4 * ((math.sin(s * 0.9 + g * 2.1) + 1) / 2));
+      canvas.drawPoints(ui.PointMode.points, pts, paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _PP o) => false;
+  bool shouldRepaint(covariant _ParticlePainter o) => false;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/fa.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/format.dart';
 import '../models/item.dart';
@@ -93,7 +94,7 @@ class _HistoryViewState extends State<HistoryView> {
                       price: numOf(m['price']),
                       meta: joinMeta([
                         if (it.hasWeight) metaPart(FontAwesomeIcons.weightHanging, fw(it.weight)),
-                        metaPart(FontAwesomeIcons.user, strOf(m['buyer_name'])),
+                        metaPart(FaS.user, strOf(m['buyer_name'])),
                         TextSpan(text: strOf(m['sold_at'])),
                       ]),
                     );

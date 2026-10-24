@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import '../core/fa.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/sfx.dart';
 import 'glass_card.dart';
 
 /// Toast pil kaca di bawah layar (muncul memantul, hilang setelah ~2.6 dtk).
 void showToast(BuildContext context, String msg,
-    {IconData icon = FontAwesomeIcons.circleCheck}) {
+    {IconData icon = FaS.circleCheck}) {
   final overlay = Overlay.maybeOf(context);
   if (overlay == null) return;
   Sfx.toast(icon);
@@ -62,14 +63,10 @@ class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
           child: AnimatedBuilder(
             animation: _c,
             builder: (_, child) {
-              final v = _c.value.clamp(0.0, 1.0).toDouble();
-              final t = Curves.easeOutBack.transform(v);
-              return Opacity(
-                opacity: v,
-                child: Transform.translate(
-                  offset: Offset(0, 30 * (1 - t)),
-                  child: Transform.scale(scale: 0.8 + 0.2 * t, child: child),
-                ),
+              final t = Curves.easeOutBack.transform(_c.value.clamp(0.0, 1.0).toDouble());
+              return Transform.translate(
+                offset: Offset(0, 30 * (1 - t)),
+                child: Transform.scale(scale: 0.8 + 0.2 * t, child: child),
               );
             },
             child: Material(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/api.dart';
+import '../core/fx.dart';
 import '../core/sfx.dart';
 import '../core/theme.dart';
 import '../state/dash_state.dart';
@@ -145,6 +146,27 @@ class _SettingsViewState extends State<SettingsView> {
               },
             ),
           ]),
+        ),
+        const SizedBox(height: 14),
+        GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          child: ValueListenableBuilder<bool>(
+            valueListenable: Fx.light,
+            builder: (_, light, __) => Row(children: [
+              const Icon(FontAwesomeIcons.bolt, size: 15),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Mode ringan', style: TextStyle(fontWeight: FontWeight.w700)),
+                  SizedBox(height: 2),
+                  Text('Kurangi blur dan matikan latar bergerak kalau terasa patah-patah.',
+                      style: TextStyle(color: C.muted, fontSize: 12, height: 1.3)),
+                ]),
+              ),
+              const SizedBox(width: 10),
+              GlassSwitch(value: light, onChanged: (v) => Fx.setLight(v)),
+            ]),
+          ),
         ),
       ],
     );

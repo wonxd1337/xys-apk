@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/fa.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/format.dart';
 import '../core/theme.dart';
@@ -110,7 +111,7 @@ class _ItemCardState extends State<ItemCard> {
           width: 52,
           radius: 13,
           padding: EdgeInsets.zero,
-          icon: w.sent ? FontAwesomeIcons.hourglassHalf : FontAwesomeIcons.trashCan,
+          icon: w.sent ? FontAwesomeIcons.hourglassHalf : FaS.trashCan,
           onPressed: w.sent ? null : w.onUnlist,
         ),
       ]);
@@ -231,7 +232,7 @@ class _ItemCardState extends State<ItemCard> {
 
     return Reveal(
       index: w.index,
-      child: Opacity(
+      child: GlassDim(
       opacity: w.dimmed ? 0.35 : 1,
       child: Stack(
         clipBehavior: Clip.none,

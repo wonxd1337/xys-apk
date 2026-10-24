@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/fa.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -116,7 +117,7 @@ class _DashboardViewState extends State<DashboardView> {
     }
   }
 
-  void _toast(String m, {IconData icon = FontAwesomeIcons.circleCheck}) {
+  void _toast(String m, {IconData icon = FaS.circleCheck}) {
     if (mounted) showToast(context, m, icon: icon);
   }
 
@@ -322,8 +323,8 @@ class _DashboardViewState extends State<DashboardView> {
       ok = await confirmBox(
         context,
         title: 'Unlist $n item?',
-        icon: FontAwesomeIcons.trashCan,
-        okIcon: FontAwesomeIcons.trashCan,
+        icon: FaS.trashCan,
+        okIcon: FaS.trashCan,
         okLabel: 'Ya, Unlist',
         danger: true,
         body: ManySummary(items: L, note: 'Item akan diturunkan dari booth.'),
@@ -611,6 +612,7 @@ class _DashboardViewState extends State<DashboardView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // baris 1: tab Booth/Inventory + tombol Pilih (btn d, ikon regular)
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -627,43 +629,51 @@ class _DashboardViewState extends State<DashboardView> {
               ),
               GlowButton(
                 kind: BtnKind.dark,
+                height: 40,
                 icon: selMode ? FontAwesomeIcons.xmark : FontAwesomeIcons.squareCheck,
                 label: selMode ? 'Selesai' : 'Pilih',
                 onPressed: _toggleSel,
               ),
-              if (inv)
-                GlowButton(
-                  icon: FontAwesomeIcons.rotate,
-                  label: 'Refresh',
-                  onPressed: () async {
-                    try {
-                      final r = await st.cmd({'type': 'refresh'});
-                      if (r['status'] == 'ok') {
-                        _toast('Refreshing Inventory', icon: FontAwesomeIcons.rotate);
-                      } else {
-                        _toast('${r['message'] ?? 'Gagal'}',
-                            icon: FontAwesomeIcons.triangleExclamation);
-                      }
-                    } catch (_) {
-                      _toast('Gagal terhubung ke server',
-                          icon: FontAwesomeIcons.triangleExclamation);
-                    }
-                  },
-                ),
-              if (inv)
-                Text(
-                  'Inventaris: ${st.invAge == null ? 'belum disinkron' : '${ago(st.invAge)} lalu'}',
-                  style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600, color: old ? C.amber : C.muted),
-                ),
             ],
           ),
           if (inv) ...[
             const SizedBox(height: 10),
-            GlassInput(
-              controller: _q,
-              hint: 'Search item...',
-              prefix: const Icon(FontAwesomeIcons.magnifyingGlass, size: 14, color: C.muted),
+            // baris 2: pencarian (melebar) + Refresh
+            Row(children: [
+              Expanded(
+                child: GlassInput(
+                  controller: _q,
+                  hint: 'Search item...',
+                  prefix: const Icon(FontAwesomeIcons.magnifyingGlass, size: 14, color: C.muted),
+                ),
+              ),
+              const SizedBox(width: 10),
+              GlowButton(
+                height: 40,
+                icon: FontAwesomeIcons.rotate,
+                label: 'Refresh',
+                onPressed: () async {
+                  try {
+                    final r = await st.cmd({'type': 'refresh'});
+                    if (r['status'] == 'ok') {
+                      _toast('Refreshing Inventory', icon: FontAwesomeIcons.rotate);
+                    } else {
+                      _toast('${r['message'] ?? 'Gagal'}',
+                          icon: FontAwesomeIcons.triangleExclamation);
+                    }
+                  } catch (_) {
+                    _toast('Gagal terhubung ke server',
+                        icon: FontAwesomeIcons.triangleExclamation);
+                  }
+                },
+              ),
+            ]),
+            const SizedBox(height: 10),
+            // baris 3: umur sinkron inventaris (.fr)
+            Text(
+              'Inventaris: ${st.invAge == null ? 'belum disinkron' : '${ago(st.invAge)} lalu'}',
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: old ? C.amber : C.muted),
             ),
           ],
         ],
@@ -833,7 +843,7 @@ class _DashboardViewState extends State<DashboardView> {
                 height: 42,
                 width: 52,
                 padding: EdgeInsets.zero,
-                icon: FontAwesomeIcons.trashCan,
+                icon: FaS.trashCan,
                 onPressed: n == 0 ? null : () => _bulk(true),
               ),
             ],
