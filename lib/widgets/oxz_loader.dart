@@ -13,7 +13,9 @@ class OxzLoader extends StatefulWidget {
 
 class _OxzLoaderState extends State<OxzLoader> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 2400))..repeat();
+      AnimationController(
+        vsync: this,
+        animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 2400))..repeat();
 
   @override
   void dispose() {

@@ -94,7 +94,9 @@ class _GlowButtonState extends State<GlowButton> with SingleTickerProviderStateM
   bool _down = false;
   Offset _pos = Offset.zero;
   late final AnimationController _sheen =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 650));
+      AnimationController(
+        vsync: this,
+        animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 650));
 
   @override
   void dispose() {
@@ -241,7 +243,9 @@ class _Burst extends StatefulWidget {
 
 class _BurstState extends State<_Burst> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+      AnimationController(
+        vsync: this,
+        animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 600));
   final _rnd = math.Random();
   late final List<double> _d = List.generate(10, (_) => 28 + _rnd.nextDouble() * 34);
 

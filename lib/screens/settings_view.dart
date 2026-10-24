@@ -168,6 +168,47 @@ class _SettingsViewState extends State<SettingsView> {
             ]),
           ),
         ),
+        const SizedBox(height: 14),
+        GlassCard(
+          padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+          child: ValueListenableBuilder<double>(
+            valueListenable: Fx.blur,
+            builder: (_, b, __) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Icon(FontAwesomeIcons.droplet, size: 15),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text('Blur kaca', style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+                Text(b.round() == 0 ? 'Bening' : '${b.round()}',
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+              ]),
+              SliderTheme(
+                data: SliderThemeData(
+                  trackHeight: 3,
+                  activeTrackColor: Colors.white,
+                  inactiveTrackColor: const Color(0x33FFFFFF),
+                  thumbColor: Colors.white,
+                  overlayColor: const Color(0x22FFFFFF),
+                  showValueIndicator: ShowValueIndicator.never,
+                ),
+                child: Slider(
+                  min: 0,
+                  max: 26,
+                  divisions: 26,
+                  value: b.clamp(0.0, 26.0).toDouble(),
+                  onChanged: (v) => Fx.blur.value = v,
+                  onChangeEnd: Fx.setBlur,
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text('0 = kaca bening tanpa blur, 26 = sekuat CSS asli. Geser sampai pas.',
+                    style: TextStyle(color: C.muted, fontSize: 12, height: 1.3)),
+              ),
+            ]),
+          ),
+        ),
       ],
     );
   }

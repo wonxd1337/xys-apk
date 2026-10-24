@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../core/api.dart';
 import '../core/fa.dart';
 import '../core/fx.dart';
+import '../core/sfx.dart';
 import '../core/theme.dart';
 import '../state/dash_state.dart';
 import '../widgets/aurora_background.dart';
@@ -27,8 +28,27 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
+class _HomeShellState extends State<HomeShell>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   bool _drawer = false;
+  // geser buka/tutup: 0.55s cubic-bezier(.2,.9,.2,1) seperti #dr di dashboard asli
+  late final AnimationController _dc = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 550),
+    animationBehavior: AnimationBehavior.preserve,
+  );
+  late final Animation<double> _dcT = CurvedAnimation(parent: _dc, curve: const Cubic(0.2, 0.9, 0.2, 1));
+
+  void _setDrawer(bool v) {
+    if (_drawer == v) return;
+    setState(() => _drawer = v);
+    if (v) {
+      _dc.forward();
+    } else {
+      _dc.reverse();
+    }
+  }
+
   bool _splash = true;
   bool _minDone = false;
   late AppView _view = Api.baseUrl.isEmpty ? AppView.settings : AppView.dash;
@@ -55,6 +75,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _dc.dispose();
     dash.removeListener(_checkSplash);
     super.dispose();
   }
@@ -77,10 +98,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
   }
 
-  void _go(AppView v) => setState(() {
-        _view = v;
-        _drawer = false;
-      });
+  void _go(AppView v) {
+    setState(() {
+      _view = v;
+      _drawer = false;
+    });
+    _dc.reverse();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,13 +116,11 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           canPop: !_drawer && _view == AppView.dash,
           onPopInvokedWithResult: (didPop, _) {
             if (didPop) return;
-            setState(() {
-              if (_drawer) {
-                _drawer = false;
-              } else {
-                _view = AppView.dash;
-              }
-            });
+            if (_drawer) {
+              _setDrawer(false);
+            } else {
+              setState(() => _view = AppView.dash);
+            }
           },
           child: SafeArea(
             bottom: false,
@@ -136,16 +158,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                     ),
                   ],
                 ),
-                if (_drawer)
-                  Positioned.fill(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _drawer = false),
-                      child: BackdropFilter(
-                        filter: _blur5,
-                        child: const ColoredBox(color: Color(0x88000000)),
-                      ),
-                    ),
-                  ),
+                _scrim(),
                 _drawerPanel(w),
               ],
             ),
@@ -196,7 +209,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           listenable: dash,
           builder: (_, __) => Row(
             children: [
-              _Hamburger(open: _drawer, onTap: () => setState(() => _drawer = !_drawer)),
+              _Hamburger(open: _drawer, onTap: () => _setDrawer(!_drawer)),
               const SizedBox(width: 10),
               const Icon(FontAwesomeIcons.skull, size: 18),
               if (w > 700) ...[
@@ -326,12 +339,14 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       bottom: 12,
       left: 12,
       width: dw,
-      child: IgnorePointer(
-        ignoring: !_drawer,
-        child: AnimatedSlide(
-          offset: Offset(_drawer ? 0 : -1.2, 0),
-          duration: const Duration(milliseconds: 550),
-          curve: const Cubic(0.2, 0.9, 0.2, 1),
+      child: AnimatedBuilder(
+        animation: _dcT,
+        builder: (_, child) => Transform.translate(
+          offset: Offset(-1.15 * dw * (1 - _dcT.value), 0),
+          child: child,
+        ),
+        child: IgnorePointer(
+          ignoring: !_drawer,
           child: GlassCard(
             radius: 24,
             padding: const EdgeInsets.all(18),
@@ -359,15 +374,15 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                   ),
                 ]),
                 const SizedBox(height: 22),
-                _nav(AppView.dash, FontAwesomeIcons.gaugeHigh, 'Dashboard', i: 0),
+                _nav(AppView.dash, FontAwesomeIcons.gaugeHigh, 'Dashboard'),
                 _nav(AppView.queue, FontAwesomeIcons.bagShopping, 'Antrian Jual',
-                    badge: dash.queue.length, i: 1),
-                _nav(AppView.hist, FontAwesomeIcons.clockRotateLeft, 'Riwayat Penjualan', i: 2),
-                _nav(AppView.wh, FontAwesomeIcons.discord, 'Webhook', i: 3),
-                _nav(AppView.find, FontAwesomeIcons.magnifyingGlass, 'Find Items', i: 4),
-                _nav(AppView.show, FaS.star, 'Showcase Item', i: 5),
+                    badge: dash.queue.length),
+                _nav(AppView.hist, FontAwesomeIcons.clockRotateLeft, 'Riwayat Penjualan'),
+                _nav(AppView.wh, FontAwesomeIcons.discord, 'Webhook'),
+                _nav(AppView.find, FontAwesomeIcons.magnifyingGlass, 'Find Items'),
+                _nav(AppView.show, FaS.star, 'Showcase Item'),
                 const Spacer(),
-                _nav(AppView.settings, FontAwesomeIcons.gear, 'Pengaturan', i: 7),
+                _nav(AppView.settings, FontAwesomeIcons.gear, 'Pengaturan'),
               ],
             ),
           ),
@@ -376,21 +391,34 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     );
   }
 
-  Widget _nav(AppView v, IconData icon, String label, {int badge = 0, int i = 0}) {
+  Widget _scrim() => AnimatedBuilder(
+        animation: _dcT,
+        builder: (_, __) {
+          final t = _dcT.value.clamp(0.0, 1.0).toDouble();
+          if (t <= 0.001 && !_drawer) return const SizedBox.shrink();
+          return Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _setDrawer(false),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5 * t + 0.01, sigmaY: 5 * t + 0.01),
+                child: ColoredBox(color: Color.fromRGBO(0, 0, 0, 0.533 * t)),
+              ),
+            ),
+          );
+        },
+      );
+
+  Widget _nav(AppView v, IconData icon, String label, {int badge = 0}) {
     final a = _view == v;
-    final ms = 320 + 70 * i;
-    return AnimatedSlide(
-      offset: Offset(_drawer ? 0 : -0.35, 0),
-      duration: Duration(milliseconds: ms),
-      curve: Curves.easeOutCubic,
-      child: AnimatedOpacity(
-        opacity: _drawer ? 1 : 0,
-        duration: Duration(milliseconds: ms),
-        child: Padding(
+    return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => _go(v),
+        onTap: () {
+          Sfx.click();
+          _go(v);
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
@@ -422,11 +450,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           ]),
         ),
       ),
-    )));
+    );
   }
 }
 
-final _blur5 = ImageFilter.blur(sigmaX: 5, sigmaY: 5);
 
 class _Hamburger extends StatefulWidget {
   const _Hamburger({required this.open, required this.onTap});
@@ -440,7 +467,8 @@ class _Hamburger extends StatefulWidget {
 /// .hb: 3 garis jadi X (0.35s cubic-bezier(.6,0,.2,1)), tekan mengecil .88 lalu memantul.
 class _HamburgerState extends State<_Hamburger> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
-    vsync: this,
+        vsync: this,
+        animationBehavior: AnimationBehavior.preserve,
     duration: const Duration(milliseconds: 350),
     value: widget.open ? 1 : 0,
   );

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../core/fx.dart';
@@ -58,26 +59,24 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: Fx.light,
-      builder: (ctx, light, _) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([Fx.light, Fx.blur]),
+      builder: (ctx, _) {
+        final light = Fx.light.value;
+        final sigma = light ? math.min(Fx.blur.value, 4.0) : Fx.blur.value;
         final br = BorderRadius.circular(radius);
         final op = (contentOpacity * GlassDim.of(ctx)).clamp(0.0, 1.0).toDouble();
-        final filter = light
-            ? ImageFilter.blur(sigmaX: 12, sigmaY: 12)
-            : ImageFilter.compose(
-                outer: const ColorFilter.matrix(_sat),
-                inner: ImageFilter.blur(sigmaX: 26, sigmaY: 26),
-              );
+        final ImageFilter? filter = sigma < 0.5
+            ? null
+            : (light
+                ? ImageFilter.blur(sigmaX: sigma, sigmaY: sigma)
+                : ImageFilter.compose(
+                    outer: const ColorFilter.matrix(_sat),
+                    inner: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+                  ));
         Widget content = Padding(padding: padding ?? EdgeInsets.zero, child: child);
         if (op < 1) content = Opacity(opacity: op, child: content);
-        return CustomPaint(
-          painter: (shadow && !light) ? _OuterShadow(radius) : null,
-          child: ClipRRect(
-            borderRadius: br,
-            child: BackdropFilter(
-              filter: filter,
-              child: Container(
+        Widget body = Container(
                 decoration: BoxDecoration(
                   borderRadius: br,
                   border: Border.all(color: C.glassBorder),
@@ -100,8 +99,12 @@ class GlassCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ),
+              );
+        return CustomPaint(
+          painter: (shadow && !light) ? _OuterShadow(radius) : null,
+          child: ClipRRect(
+            borderRadius: br,
+            child: filter == null ? body : BackdropFilter(filter: filter, child: body),
           ),
         );
       },

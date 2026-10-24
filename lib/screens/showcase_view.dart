@@ -215,6 +215,7 @@ class _ShowcaseViewState extends State<ShowcaseView> {
 
   Widget _preview() {
     final sel = _sel;
+    final h = sel.fold<double>(84.0, (m, x) => math.max(m, _PreviewTile.natural(x)));
     return Container(
       constraints: const BoxConstraints(minHeight: 104),
       padding: const EdgeInsets.all(10),
@@ -234,6 +235,7 @@ class _ShowcaseViewState extends State<ShowcaseView> {
                         _PreviewTile(
                           item: sel[i],
                           index: i,
+                          height: h,
                           iconUrl: dash.icons[sel[i].iconId],
                           onRemove: () {
                             Sfx.click();
@@ -361,15 +363,30 @@ class _GradBorder extends CustomPainter {
 
 /// Preview (.shv): tanpa background, hanya border gradient mengikuti warna mutasi.
 class _PreviewTile extends StatelessWidget {
-  const _PreviewTile({required this.item, required this.index, required this.iconUrl, required this.onRemove});
+  const _PreviewTile({required this.item, required this.index, required this.height, required this.iconUrl, required this.onRemove});
   final Item item;
   final int index;
+  final double height;
   final String? iconUrl;
   final VoidCallback onRemove;
 
-  String get _name {
+  static String nameOf(Item item) {
     final sz = item.size == 'max' ? 'Maxton ' : (item.size == 'big' ? 'Big ' : '');
     return (item.isShiny ? 'Shiny ' : '') + sz + item.baseName;
+  }
+
+  static const _nameStyle = TextStyle(fontSize: 9.6, fontWeight: FontWeight.w800, height: 1.12);
+
+  /// tinggi alami tile: padding 20 + label + ikon 50 + nama (1-2 baris) + padding 6
+  static double natural(Item item) {
+    final iconTop = item.mutOn ? 21.0 : 20.0;
+    final tp = TextPainter(
+      text: TextSpan(text: nameOf(item), style: _nameStyle),
+      maxLines: 2,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: 72);
+    final lines = tp.computeLineMetrics().length.clamp(1, 2);
+    return iconTop + 39 + lines * 9.6 * 1.12 + 6;
   }
 
   @override
@@ -384,7 +401,7 @@ class _PreviewTile extends StatelessWidget {
         foregroundPainter: _GradBorder(grad, 15, 1.5),
         child: SizedBox(
           width: 78,
-          height: 94,
+          height: height,
           child: Stack(children: [
             Positioned(
               top: 6,
@@ -415,7 +432,7 @@ class _PreviewTile extends StatelessWidget {
               left: 3,
               right: 3,
               child: Text(
-                _name,
+                nameOf(item),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

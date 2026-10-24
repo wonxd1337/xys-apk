@@ -569,7 +569,7 @@ class _DashboardViewState extends State<DashboardView> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: a ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(15),
@@ -579,13 +579,13 @@ class _DashboardViewState extends State<DashboardView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 13, color: a ? Colors.black : C.muted),
-            const SizedBox(width: 8),
+            const SizedBox(width: 7),
             Text(label,
                 style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 14.4,
+                    fontSize: 14,
                     color: a ? Colors.black : C.muted)),
-            const SizedBox(width: 8),
+            const SizedBox(width: 7),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
               decoration: BoxDecoration(
@@ -613,28 +613,32 @@ class _DashboardViewState extends State<DashboardView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // baris 1: tab Booth/Inventory + tombol Pilih (btn d, ikon regular)
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              GlassCard(
-                radius: 19,
-                padding: const EdgeInsets.all(5),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  _tabBtn(DashTab.booth, FontAwesomeIcons.store, 'Booth', st.booth.length),
-                  const SizedBox(width: 4),
-                  _tabBtn(DashTab.inv, FontAwesomeIcons.boxOpen, 'Inventory', st.inv.length),
-                ]),
-              ),
-              GlowButton(
-                kind: BtnKind.dark,
-                height: 40,
-                icon: selMode ? FontAwesomeIcons.xmark : FontAwesomeIcons.squareCheck,
-                label: selMode ? 'Selesai' : 'Pilih',
-                onPressed: _toggleSel,
-              ),
-            ],
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GlassCard(
+                  radius: 19,
+                  padding: const EdgeInsets.all(5),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    _tabBtn(DashTab.booth, FontAwesomeIcons.store, 'Booth', st.booth.length),
+                    const SizedBox(width: 4),
+                    _tabBtn(DashTab.inv, FontAwesomeIcons.boxOpen, 'Inventory', st.inv.length),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                GlowButton(
+                  kind: BtnKind.dark,
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 13),
+                  icon: selMode ? FontAwesomeIcons.xmark : FontAwesomeIcons.squareCheck,
+                  label: selMode ? 'Selesai' : 'Pilih',
+                  onPressed: _toggleSel,
+                ),
+              ],
+            ),
           ),
           if (inv) ...[
             const SizedBox(height: 10),

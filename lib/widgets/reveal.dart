@@ -18,7 +18,9 @@ class Reveal extends StatefulWidget {
 
 class _RevealState extends State<Reveal> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+      AnimationController(
+        vsync: this,
+        animationBehavior: AnimationBehavior.preserve, duration: const Duration(milliseconds: 600));
   late final Animation<double> _a =
       CurvedAnimation(parent: _c, curve: const Cubic(0.2, 0.9, 0.2, 1));
   Timer? _t;
@@ -26,8 +28,10 @@ class _RevealState extends State<Reveal> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    final int d = widget.baseDelay + 45 * math.min<int>(widget.index, 12);
-    if (d == 0) {
+    final int d = widget.baseDelay + 40 * math.min<int>(widget.index, 12);
+    if (Fx.light.value) {
+      _c.value = 1;
+    } else if (d == 0) {
       _c.forward();
     } else {
       _t = Timer(Duration(milliseconds: d), () {
@@ -74,7 +78,8 @@ class ViewEntrance extends StatefulWidget {
 
 class _ViewEntranceState extends State<ViewEntrance> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
-    vsync: this,
+        vsync: this,
+        animationBehavior: AnimationBehavior.preserve,
     duration: const Duration(milliseconds: 450),
     value: 1,
   );

@@ -29,7 +29,8 @@ class _Toast extends StatefulWidget {
 
 class _ToastState extends State<_Toast> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
-    vsync: this,
+        vsync: this,
+        animationBehavior: AnimationBehavior.preserve,
     duration: const Duration(milliseconds: 500),
     reverseDuration: const Duration(milliseconds: 400),
   );

@@ -23,7 +23,9 @@ class SpinBorder extends StatefulWidget {
 class _SpinBorderState extends State<SpinBorder>
     with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(seconds: 3));
+      AnimationController(
+        vsync: this,
+        animationBehavior: AnimationBehavior.preserve, duration: const Duration(seconds: 3));
 
   @override
   void initState() {
